@@ -50,7 +50,7 @@ const NavBar = () => {
                 </div>
                 <Navbar.Collapse>
                     <NavLink to="/" className={({ isActive }) => isActive ? "text-green-500" : ""}>
-                        All Users
+                    Dashboard
                     </NavLink>
                     <NavLink to="/posts" className={({ isActive }) => isActive ? "text-green-500" : ""}>
                         All Posts
