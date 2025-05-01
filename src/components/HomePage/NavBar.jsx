@@ -1,12 +1,13 @@
 /* eslint-disable no-unused-vars */
 import { Avatar, Dropdown, Navbar } from "flowbite-react";
 import { useContext } from "react";
-import { NavLink, useLocation } from "react-router-dom"; 
+import { NavLink, useLocation } from "react-router-dom";
 import { AuthC } from "../Auth/AuthProviderx";
 import { FaUser } from "react-icons/fa";
 import R from "../../assets/Gemini_Generated_Image_sl6g11sl6g11sl6g-removebg-preview.png"
+import SocialShareButton from "../SocialShareButton";
 const NavBar = () => {
-    const { user, logOut, deleteAccount} = useContext(AuthC);
+    const { user, logOut} = useContext(AuthC);
     const location = useLocation(); // Get the current location
 
     const isActive = (path) => {
@@ -21,36 +22,34 @@ const NavBar = () => {
                 </Navbar.Brand>
                 <div className="flex lg:order-2">
     <Dropdown
-      arrowIcon={false}
-      inline
-      label={
-        user?.photoURL ? (
-          <Avatar alt="User settings" img={user?.photoURL} rounded />
-        ) : (
-          <Avatar alt="User settings" icon={<FaUser />} rounded />
-        )
-      }
+        arrowIcon={false}
+        inline
+        label={
+            user?.photoURL ? (
+                <Avatar alt="User settings" img={user?.photoURL} rounded />
+            ) : (
+                <Avatar alt="User settings" icon={<FaUser />} rounded />
+            )
+        }
     >
-                        <Dropdown.Header>
-                            <span className="block text-sm">{user?.displayName}</span>
-                            <span className="block truncate text-sm font-medium">{user?.email}</span>
-                        </Dropdown.Header>
-
-                        {user && user?.email ? (
-                            <div>
-                                <Dropdown.Divider />
-                                <Dropdown.Item onClick={logOut}>Sign out</Dropdown.Item>
-                                <Dropdown.Item onClick={deleteAccount}>Delete Account</Dropdown.Item>
-                            </div>
-                        ) : (
-                            <Dropdown.Item href="/login">Login</Dropdown.Item>
-                        )}
-                    </Dropdown>
+        {user && user?.email ? (
+            <div>
+                <Dropdown.Header>
+                    <span className="block text-sm">{user?.displayName}</span>
+                    <span className="block truncate text-sm font-medium">{user?.email}</span>
+                </Dropdown.Header>
+                <Dropdown.Divider />
+                <Dropdown.Item onClick={logOut}>Sign out</Dropdown.Item>
+            </div>
+        ) : (
+            <Dropdown.Item href="/login">Login</Dropdown.Item>
+        )}
+    </Dropdown>
                     <Navbar.Toggle />
                 </div>
                 <Navbar.Collapse>
                     <NavLink to="/" className={({ isActive }) => isActive ? "text-green-500" : ""}>
-                    Dashboard
+                        Dashboard
                     </NavLink>
                     <NavLink to="/posts" className={({ isActive }) => isActive ? "text-green-500" : ""}>
                         All Posts

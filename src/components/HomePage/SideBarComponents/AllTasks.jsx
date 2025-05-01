@@ -1,17 +1,17 @@
 import React, { useEffect, useContext, useState } from 'react';
 import { AuthC } from '../../Auth/AuthProviderx';
-import { Button, Spinner } from 'flowbite-react';
+import { Button, Spinner, Card } from 'flowbite-react';
 import UseAxiosPublic from '../../Auth/UseAxiosPublic';
 import { GiGiftTrap } from 'react-icons/gi';
 import { BsCalendarDate } from 'react-icons/bs';
 import { TbTriangle } from 'react-icons/tb';
+import { FaSave } from 'react-icons/fa'; // Import save icon
 
 const Loading = () => (
   <div className="flex items-center justify-center h-screen">
-             <Spinner aria-label="Default status example" />
+    <Spinner aria-label="Default status example" />
   </div>
 );
-
 
 const AllTasks = () => {
   const { user, updateUserCreditPoints } = useContext(AuthC);
@@ -19,21 +19,23 @@ const AllTasks = () => {
   const [loading, setLoading] = useState(true);
   const [rewardData, setRewardData] = useState([]);
   const [totalPoints, setTotalPoints] = useState(0);
+  const [savedPosts, setSavedPosts] = useState([]); // State for saved feeds
+  const [recentActivity, setRecentActivity] = useState([]); // State for recent activity
   const axiosPublic = UseAxiosPublic();
 
   useEffect(() => {
     const fetchData = async () => {
-      if (user?.uid) {
+      if (user?.email) {
         setLoading(true);
         const today = new Date().toDateString();
-        const lastLogin = localStorage.getItem(`lastLogin_${user.uid}`);
+        const lastLogin = localStorage.getItem(`lastLogin_${user.email}`);
         if (lastLogin === today) {
           setDailyPointsClaimed(true);
         }
 
         try {
-          const response = await axiosPublic.get('/RewardP');
-          const allRewardData = response.data;
+          const rewardResponse = await axiosPublic.get('/RewardP');
+          const allRewardData = rewardResponse.data;
           const userRewardData = allRewardData.filter(item => item.email === user.email);
           setRewardData(userRewardData);
 
@@ -42,8 +44,19 @@ const AllTasks = () => {
             pointsSum += item.points;
           });
           setTotalPoints(pointsSum);
+
+          // Load saved posts from local storage (same logic as before)
+          const storedSavedPosts = localStorage.getItem('savedPosts');
+          if (storedSavedPosts) {
+            setSavedPosts(JSON.parse(storedSavedPosts));
+          }
+
+          // Simulate fetching recent activity (replace with your actual API call)
+          const activityResponse = await axiosPublic.get(`/user-activities/${user.email}`);
+          setRecentActivity(activityResponse.data);
+
         } catch (error) {
-          console.error("Failed to fetch reward data:", error);
+          console.error("Failed to fetch data:", error);
         } finally {
           setLoading(false);
         }
@@ -53,33 +66,39 @@ const AllTasks = () => {
     };
 
     fetchData();
-  }, [user, axiosPublic]);
+  }, [user?.email, axiosPublic]);
 
   const handleClaimPoints = async () => {
-    if (user?.uid && !dailyPointsClaimed) {
+    if (user?.email && !dailyPointsClaimed) {
       const today = new Date().toDateString();
-      const lastLogin = localStorage.getItem(`lastLogin_${user.uid}`);
+      const lastLogin = localStorage.getItem(`lastLogin_${user.email}`);
       if (lastLogin !== today) {
-        const newPoints = (user.creditPoints || 0) + 50;
+        const pointsToAdd = 50;
         try {
-          await updateUserCreditPoints(user.uid, newPoints);
-          localStorage.setItem(`lastLogin_${user.uid}`, today);
+          await updateUserCreditPoints(user.email, pointsToAdd);
+          localStorage.setItem(`lastLogin_${user.email}`, today);
           console.log("Daily login points awarded: 50");
           setDailyPointsClaimed(true);
-          setTotalPoints(prevPoints => prevPoints + 50);
+          setTotalPoints(prevTotalPoints => prevTotalPoints + pointsToAdd);
 
           const response = await axiosPublic.post('/claimDailyPoints', {
             uid: user.uid,
             email: user.email,
             name: user.displayName,
-            points: newPoints,
+            points: pointsToAdd,
           });
 
           if (response.status !== 200) {
             console.error('Failed to store daily points on server');
-          }
-          if (user && updateUserCreditPoints) {
-            updateUserCreditPoints(user.uid, newPoints);
+          } else {
+            setRewardData(prevRewardData => [
+              ...prevRewardData,
+              {
+                email: user.email,
+                points: pointsToAdd,
+                timestamp: new Date().toISOString(),
+              },
+            ]);
           }
         } catch (error) {
           console.error("Failed to award daily login points:", error);
@@ -88,14 +107,15 @@ const AllTasks = () => {
     }
   };
 
+  // You might want to reuse the handleSavePost function if you display feeds here
+  // const handleSavePost = useCallback(async (post) => { ... }, [user, updateUserCreditPoints, savedPosts, setSavedPosts]);
+
   if (loading) {
-    return (
-      <Loading />
-    );
+    return <Loading />;
   }
 
   if (!user) {
-     return (
+    return (
       <div className="flex flex-col items-center justify-center h-screen">
         <TbTriangle className="text-6xl text-red-500 mb-4" />
         <p className="text-lg text-gray-700">Please log in to see your dashboard.</p>
@@ -130,6 +150,48 @@ const AllTasks = () => {
         )}
         {dailyPointsClaimed && <p className="text-green-600">Daily points already claimed today.</p>}
 
+        {savedPosts.length > 0 && (
+          <div className="mt-8">
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Your Saved Feeds</h2>
+            <div className="space-y-3">
+              {savedPosts.map((post) => (
+                <Card key={`saved-${post.id}`}>
+                  <div className="mb-2">
+                    <h5 className="text-xl font-semibold text-gray-900">{post.author} ({post.source})</h5>
+                    <p className="text-gray-700">{post.content}</p>
+                    <a href={post.link} className="text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer">View</a>
+                  </div>
+                  {/* If you want to allow unsaving from here */}
+                  {/* <Button color="gray" size="sm">Unsave</Button> */}
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {recentActivity.length > 0 && (
+          <div className="mt-8">
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Recent Activity</h2>
+            <ul className="space-y-3">
+              {recentActivity.map((activity) => (
+                <li key={`${activity.postId}-${activity.activityType}`} className="bg-gray-50 p-4 rounded-md shadow-sm">
+                  <p className="text-gray-700">
+                    You <span className="font-semibold">{activity.activityType}</span> a post from{' '}
+                    <span className="font-medium">{activity.postDetails?.author || 'Unknown'}</span> ({activity.postDetails?.source || 'Unknown'}) on{' '}
+                    {new Date(activity.timestamp).toLocaleString()}.
+                  </p>
+                  {activity.postDetails?.content && (
+                    <p className="text-gray-600 italic">{activity.postDetails.content.substring(0, 50)}...</p>
+                  )}
+                  {activity.postDetails?.link && (
+                    <a href={activity.postDetails.link} className="text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer">View Post</a>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         <div className="mt-8">
           <h2 className="text-2xl font-semibold text-gray-800 mb-4">Your Reward Points History</h2>
           {rewardData.length > 0 ? (
@@ -137,6 +199,7 @@ const AllTasks = () => {
               {rewardData.map((item, index) => (
                 <li key={index} className="bg-gray-50 p-4 rounded-md shadow-sm flex items-center justify-between">
                   <span className="text-gray-700">Timestamp: {new Date(item.timestamp).toLocaleString()}</span>
+                  <span className="font-semibold text-green-600">+ {item.points}</span>
                 </li>
               ))}
             </ul>
@@ -150,4 +213,3 @@ const AllTasks = () => {
 };
 
 export default AllTasks;
-
