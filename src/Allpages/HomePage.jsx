@@ -5,8 +5,8 @@ const HomePage = () => {
     return (
         <section>
             <NavBar></NavBar>
-        <div className="flex min-h-[98vh] gap-2">
-            <div className="bg-green-200 w-full border border-black  border-opacity-35  rounded-xl p-4"><Outlet/></div>        
+        <div className="flex min-h-[89vh] gap-2">
+            <div className="bg-blue-50 w-full border border-black  border-opacity-35  rounded-xl p-4"><Outlet/></div>        
         </div>
         </section>
 

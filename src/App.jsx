@@ -11,7 +11,7 @@ import AllPosts from "./components/HomePage/SideBarComponents/AllPosts";
 
 function App() {
     return (
-        <div className="bg-blue-200 text-stone-900 min-h-screen p-2">
+        <div className="bg-blue-100 text-stone-900 p-2">
             <BrowserRouter>
                 <AuthProviderx> {/* Wrap with AuthProvider */}
                     <Routes>
