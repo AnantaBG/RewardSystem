@@ -71,7 +71,7 @@ const [showPassword, setShowPassword] = useState(false);
   }
 
     return (
-      <div className="my-10 w-9/12 mx-auto">
+      <div className="my-10 w-9/12 min-h-[87vh] mx-auto">
         <Helmet>
         <title>ReTask || Login</title>
     </Helmet>

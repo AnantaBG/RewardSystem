@@ -6,7 +6,7 @@ ReTask is a web application designed to facilitate the management of user data. 
 
 ## 🚀 Live Demo
 
-<https://newretask.web.app/>
+<https://rewardsystem-9b79b.web.app/>
 
 ## ✨ Features
 
@@ -47,7 +47,8 @@ Make sure you have the following installed on your system:
 
 ### 2️⃣ Clone the Repository
 
-git clone https://github.com/AnantaBG/TaskJobcd TaskJob
+git clone https://github.com/AnantaBG/RewardSystem.git
+
 ### 3️⃣ Install Client Dependencies
 
 cd clientnpm install
@@ -84,14 +85,9 @@ The application includes a pre-configured administrative user:
 
 Use these credentials to log in and access administrative functionalities.
 
-## ⚙️ API Endpoints
 
-(Please provide the API endpoints so I can add them to the README)
+## Author
 
-## ➕ Contributing
+This project is licensed under the **MIT License**.  
 
-(Please provide contribution guidelines so I can add them to the README)
-
-## 📄 License
-
-(Please provide the license information so I can add it to the README)
+📌 **Developed by [AnantaBG](https://github.com/AnantaBG)** 

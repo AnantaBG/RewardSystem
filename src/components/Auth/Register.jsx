@@ -94,7 +94,7 @@ import { useContext, useState } from "react";
     })
   }
     return (
-<div className="my-10 w-9/12 mx-auto">
+<div className="my-10 w-9/12 min-h-[87vh] mx-auto">
     <Helmet>
         <title>ReTask || Register</title>
     </Helmet>
