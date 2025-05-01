@@ -9,6 +9,7 @@ import SocialShareButton from "../SocialShareButton";
 const NavBar = () => {
     const { user, logOut} = useContext(AuthC);
     const location = useLocation(); // Get the current location
+    const adminEmail = 'anantabanikofficial@gmail.com';
 
     const isActive = (path) => {
         return location.pathname === path;
@@ -51,9 +52,11 @@ const NavBar = () => {
                     <NavLink to="/" className={({ isActive }) => isActive ? "text-green-500" : ""}>
                         Dashboard
                     </NavLink>
-                    <NavLink to="/posts" className={({ isActive }) => isActive ? "text-green-500" : ""}>
-                        All Posts
-                    </NavLink>
+                    {user?.email !== adminEmail && (
+                        <NavLink to="/posts" className={({ isActive }) => isActive ? "text-green-500" : ""}>
+                            All Posts
+                        </NavLink>
+                    )}
                     {user && user?.email ? (
                         <div onClick={logOut}>
                             <NavLink to="#" className={({ isActive }) => isActive ? "text-black" : ""}>

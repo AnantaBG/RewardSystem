@@ -1,6 +1,6 @@
 import React, { useEffect, useContext, useState } from 'react';
 import { AuthC } from '../../Auth/AuthProviderx';
-import { Button, Spinner, Card } from 'flowbite-react';
+import { Button, Spinner, Card, Table } from 'flowbite-react';
 import UseAxiosPublic from '../../Auth/UseAxiosPublic';
 import { GiGiftTrap } from 'react-icons/gi';
 import { BsCalendarDate } from 'react-icons/bs';
@@ -22,6 +22,7 @@ const AllTasks = () => {
   const [savedPosts, setSavedPosts] = useState([]); // State for saved feeds
   const [recentActivity, setRecentActivity] = useState([]); // State for recent activity
   const axiosPublic = UseAxiosPublic();
+  const adminEmail = 'anantabanikofficial@gmail.com';
 
   useEffect(() => {
     const fetchData = async () => {
@@ -35,10 +36,9 @@ const AllTasks = () => {
 
         try {
           const rewardResponse = await axiosPublic.get('/RewardP');
-          const allRewardData = rewardResponse.data;
-          const userRewardData = allRewardData.filter(item => item.email === user.email);
-          setRewardData(userRewardData);
+          setRewardData(rewardResponse.data); // Store all reward data
 
+          const userRewardData = rewardResponse.data.filter(item => item.email === user.email);
           let pointsSum = 0;
           userRewardData.forEach(item => {
             pointsSum += item.points;
@@ -107,9 +107,6 @@ const AllTasks = () => {
     }
   };
 
-  // You might want to reuse the handleSavePost function if you display feeds here
-  // const handleSavePost = useCallback(async (post) => { ... }, [user, updateUserCreditPoints, savedPosts, setSavedPosts]);
-
   if (loading) {
     return <Loading />;
   }
@@ -131,15 +128,20 @@ const AllTasks = () => {
           <p className="text-lg text-gray-700">
             Welcome, <span className="font-semibold text-blue-600">{user.displayName || 'User'}</span>!
           </p>
-          <p className="text-gray-600">
-            <span className="font-medium">Your Email:</span> {user.email}
-          </p>
-          <p className="text-xl text-green-600 flex items-center">
-            <GiGiftTrap className="mr-2 text-green-500" />
-            Total Credit Points: <span className="font-bold">{totalPoints}</span>
-          </p>
+          {user.email !== adminEmail && (
+            <>
+              <p className="text-gray-600">
+                <span className="font-medium">Your Email:</span> {user.email}
+              </p>
+              <p className="text-xl text-green-600 flex items-center">
+                <GiGiftTrap className="mr-2 text-green-500" />
+                Total Credit Points: <span className="font-bold">{totalPoints}</span>
+              </p>
+              {dailyPointsClaimed && <p className="text-green-600">Daily points already claimed today.</p>}
+            </>
+          )}
         </div>
-        {!dailyPointsClaimed && (
+        {user.email !== adminEmail && !dailyPointsClaimed && (
           <Button
             onClick={handleClaimPoints}
             className="bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600"
@@ -148,9 +150,30 @@ const AllTasks = () => {
             Claim Daily Points (50)
           </Button>
         )}
-        {dailyPointsClaimed && <p className="text-green-600">Daily points already claimed today.</p>}
 
-        {savedPosts.length > 0 && (
+        {user.email === adminEmail && rewardData.length > 0 && (
+          <div className="mt-8 overflow-x-auto">
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">All Reward Data</h2>
+            <Table hoverable>
+              <Table.Head>
+                <Table.HeadCell>Email</Table.HeadCell>
+                <Table.HeadCell>Name</Table.HeadCell>
+                <Table.HeadCell>Points</Table.HeadCell>
+              </Table.Head>
+              <Table.Body className="divide-y">
+                {rewardData.map((dataItem, index) => (
+                  <Table.Row key={index} className="bg-white dark:border-gray-700 dark:bg-gray-800">
+                    <Table.Cell>{dataItem.email}</Table.Cell>
+                    <Table.Cell>{dataItem.name}</Table.Cell>
+                    <Table.Cell>{dataItem.points}</Table.Cell>
+                  </Table.Row>
+                ))}
+              </Table.Body>
+            </Table>
+          </div>
+        )}
+
+        {user.email !== adminEmail && savedPosts.length > 0 && (
           <div className="mt-8">
             <h2 className="text-2xl font-semibold text-gray-800 mb-4">Your Saved Feeds</h2>
             <div className="space-y-3">
@@ -192,21 +215,23 @@ const AllTasks = () => {
           </div>
         )}
 
-        <div className="mt-8">
-          <h2 className="text-2xl font-semibold text-gray-800 mb-4">Your Reward Points History</h2>
-          {rewardData.length > 0 ? (
-            <ul className="space-y-3">
-              {rewardData.map((item, index) => (
-                <li key={index} className="bg-gray-50 p-4 rounded-md shadow-sm flex items-center justify-between">
-                  <span className="text-gray-700">Timestamp: {new Date(item.timestamp).toLocaleString()}</span>
-                  <span className="font-semibold text-green-600">+ {item.points}</span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-gray-500">No reward points history found for your account.</p>
-          )}
-        </div>
+        {user.email !== adminEmail && (
+          <div className="mt-8">
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Your Reward Points History</h2>
+            {rewardData.filter(item => item.email === user.email).length > 0 ? (
+              <ul className="space-y-3">
+                {rewardData.filter(item => item.email === user.email).map((item, index) => (
+                  <li key={index} className="bg-gray-50 p-4 rounded-md shadow-sm flex items-center justify-between">
+                    <span className="text-gray-700">Timestamp: {new Date(item.timestamp).toLocaleString()}</span>
+                    <span className="font-semibold text-green-600">+ {item.points}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-gray-500">No reward points history found for your account.</p>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
