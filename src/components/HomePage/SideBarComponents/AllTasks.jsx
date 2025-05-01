@@ -56,7 +56,7 @@ const AllTasks = () => {
           setRecentActivity(activityResponse.data);
 
         } catch (error) {
-          console.error("Failed to fetch data:", error);
+        //   console.error("Failed to fetch data:", error);
         } finally {
           setLoading(false);
         }

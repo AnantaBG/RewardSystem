@@ -13,26 +13,43 @@ const AllPosts = () => {
   const [reportedPosts, setReportedPosts] = useState([]);
   const axiosPublic = UseAxiosPublic();
 
-  const generateFakePosts = (count) => {
+  const generateFakePosts = (count, source) => {
     const posts = [];
-    const sources = ['Twitter', 'Reddit', 'LinkedIn'];
-    const users = ['@TechGuru', 'r/WebDev', 'Software Innovations'];
-    const contents = [
-      'Just launched a new open-source project on GitHub! Check it out: [link]',
-      'Ask me anything about React best practices!',
-      'Interesting article on the future of AI in web development. [link]',
-      'Sharing a code snippet that helped me solve a tricky bug.',
-      'Looking for feedback on my latest portfolio design. [link]',
-    ];
+    const users = {
+      Twitter: ['@TechGuru', '@CodeNinja', '@FrontendFanatic', '@MobileMaster'],
+      Reddit: ['r/WebDev', 'u/DataScience', 'r/GameDev'],
+      LinkedIn: ['Software Innovations', 'AI Insights', 'Cloud Computing News'],
+    };
+    const contents = {
+      Twitter: [
+        'Just launched a new open-source project on GitHub! Check it out: [link]',
+        'Ask me anything about React best practices!',
+        'Interesting article on the future of AI in web development. [link]',
+        'Sharing a code snippet that helped me solve a tricky bug.',
+      ],
+      Reddit: [
+        'Looking for feedback on my latest portfolio design. [link]',
+        'Exploring the new features of TypeScript 5.0.',
+        'A beginner\'s guide to cloud deployment with Docker.',
+      ],
+      LinkedIn: [
+        'Just finished building a REST API with Node.js and Express.',
+        'Learning about the latest advancements in machine learning.',
+        'Debugging a complex issue in my Angular application.',
+      ],
+    };
 
     for (let i = 0; i < count; i++) {
-      const sourceIndex = Math.floor(Math.random() * sources.length);
+      const availableUsers = users[source] || [];
+      const availableContents = contents[source] || [];
+      const author = availableUsers[Math.floor(Math.random() * availableUsers.length)] || 'Unknown User';
+      const content = availableContents[Math.floor(Math.random() * availableContents.length)] || 'No content';
       posts.push({
-        id: `fake-${i}`,
-        source: sources[sourceIndex],
-        author: users[sourceIndex],
-        content: contents[Math.floor(Math.random() * contents.length)],
-        link: `https://fakeurl.com/post/${i}`,
+        id: `${source}-${i}`,
+        source: source,
+        author: author,
+        content: content,
+        link: `https://example.com/${source.toLowerCase()}/${author.replace(/[@/]/g, '')}`,
         isSaved: false,
         isReported: false,
       });
@@ -41,20 +58,17 @@ const AllPosts = () => {
   };
 
   useEffect(() => {
-    // Simulate fetching posts
-    const fakeTwitterPosts = generateFakePosts(3).map(post => ({ ...post, source: 'Twitter', author: `@${post.author.split(' ')[0]}` }));
-    const fakeRedditPosts = generateFakePosts(3).map(post => ({ ...post, source: 'Reddit', author: `u/${post.author.split('/')[1]}` }));
-    const fakeLinkedInPosts = generateFakePosts(4).map(post => ({ ...post, source: 'LinkedIn', author: post.author }));
+    const fakeTwitterPosts = generateFakePosts(3, 'Twitter');
+    const fakeRedditPosts = generateFakePosts(3, 'Reddit');
+    const fakeLinkedInPosts = generateFakePosts(4, 'LinkedIn');
     const initialPosts = [...fakeTwitterPosts, ...fakeRedditPosts, ...fakeLinkedInPosts].sort(() => Math.random() - 0.5);
     setFeedPosts(initialPosts);
 
-    // Load saved posts from local storage
     const storedSavedPosts = localStorage.getItem('savedPosts');
     if (storedSavedPosts) {
       setSavedPosts(JSON.parse(storedSavedPosts));
     }
 
-    // Load reported posts from local storage
     const storedReportedPosts = localStorage.getItem('reportedPosts');
     if (storedReportedPosts) {
       setReportedPosts(JSON.parse(storedReportedPosts));
@@ -93,23 +107,6 @@ const AllPosts = () => {
       Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to update your points.' });
     }
   }, [user, updateUserCreditPoints, savedPosts, feedPosts, setFeedPosts, setSavedPosts]);
-
-  const handleSharePost = useCallback(async (post) => {
-    if (!user?.email) {
-      Swal.fire({ icon: 'error', title: 'Authentication Required', text: 'Please log in to earn points for sharing.' });
-      return;
-    }
-    try {
-      navigator.clipboard.writeText(post.link);
-      Swal.fire({ icon: 'success', title: 'Link Copied!', text: 'Post link copied to clipboard.', timer: 1500, showConfirmButton: false });
-      const pointsToAdd = 20;
-      await updateUserCreditPoints(user.email, pointsToAdd);
-      Swal.fire({ icon: 'success', title: 'Shared!', text: `+${pointsToAdd} points awarded.`, timer: 1500, showConfirmButton: false });
-    } catch (error) {
-      console.error('Error during share:', error);
-      Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to perform share action or update points.' });
-    }
-  }, [user, updateUserCreditPoints]);
 
   const handleSocialShare = useCallback(async () => {
     if (!user?.email) {
